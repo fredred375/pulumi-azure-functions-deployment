@@ -1,0 +1,35 @@
+# dev
+.rules-all-pipeline-source-dev:
+  if: $CI_COMMIT_BRANCH == "develop" || ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" ) || ($CI_PIPELINE_SOURCE == "schedule") || ($CI_PIPELINE_SOURCE == 'trigger')
+  variables:
+    ENV: dev-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# staging
+.rules-all-pipeline-source-staging:
+  if: $CI_COMMIT_BRANCH == "staging" || ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging" ) || ($CI_PIPELINE_SOURCE == "schedule") || ($CI_PIPELINE_SOURCE == 'trigger')
+  variables:
+    ENV: stg-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# prod
+.rules-all-pipeline-source-prod:
+  if: $CI_COMMIT_BRANCH == "main" || ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" ) || ($CI_PIPELINE_SOURCE == "schedule") || ($CI_PIPELINE_SOURCE == 'trigger')
+  variables:
+    ENV: prod-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock

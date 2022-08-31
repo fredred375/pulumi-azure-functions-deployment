@@ -1,0 +1,5 @@
+name: azure-ts-functions-resources
+runtime: nodejs
+description: Creates and deploys an Azure Function App
+config:
+  azure-native:location: EastAsia

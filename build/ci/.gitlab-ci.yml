@@ -1,0 +1,121 @@
+include:
+  - local: build/ci/gitlab-ci/rules/all-pipeline-source.yaml
+  - local: build/ci/gitlab-ci/rules/deploy.yaml
+  - local: build/ci/gitlab-ci/rules/merge-request.yaml
+  - local: build/ci/gitlab-ci/rules/schedule.yaml
+
+stages:
+  - deps
+  - config
+  - preview:plan
+  - preview:function
+  - deploy:plan
+  - review:plan
+  - deploy:function
+  - review:function
+
+image: fredred/docker-pulumi-azcli
+
+cache:
+  - key:
+      files:
+        - yarn.lock
+      prefix: nodejs
+    paths:
+      - node_modules/
+    policy: pull
+
+variables:
+  PULUMI_DIR: deployments/pulumi
+  PULUMI_PLAN_DIR: deployments/pulumi/plan
+  PULUMI_FUNCTION_DIR: deployments/pulumi/function
+  VERSION:
+    description: The target lambda version to deploy
+
+deps:nodejs:
+  stage: deps
+  image: 233704588990.dkr.ecr.us-west-2.amazonaws.com/thingspro-cloud-ci/ci-job-image:node-14
+  script:
+    - yarn
+  cache:
+    - key:
+        files:
+          - yarn.lock
+        prefix: nodejs
+      paths:
+        - node_modules/
+      policy: pull-push
+  rules:
+    - !reference [.rules-all-pipeline-source-dev]
+    - !reference [.rules-all-pipeline-source-prod]
+
+config:
+  stage: config
+  script:
+    - cp configs/pulumi/examples/$ENV.env configs/pulumi/$ENV.env
+    - ./scripts/main config
+    - cat configs/pulumi/$ENV.env
+  artifacts:
+    expire_in: 60 days
+    reports:
+      dotenv: configs/pulumi/$ENV.env
+  rules:
+    - !reference [.rules-all-pipeline-source-dev]
+    - !reference [.rules-all-pipeline-source-prod]
+  needs:
+    - project: moxa/ibg/software/platform/cloud/public/examples/nodejs-azure-function-example/nodejs-function-example
+      job: build:zip
+      ref: $CI_COMMIT_BRANCH
+      artifacts: true
+
+preview:plan:
+  stage: preview:plan
+  script:
+    - pulumi preview -s $ENV -C $PULUMI_PLAN_DIR --diff --refresh
+  rules:
+    - !reference [.rules-merge-request-dev]
+    - !reference [.rules-merge-request-prod]
+
+preview:function:
+  stage: preview:function
+  script:
+    - pulumi preview -s $ENV -C $PULUMI_FUNCTION_DIR --diff --refresh
+  rules:
+    - !reference [.rules-merge-request-dev]
+    - !reference [.rules-merge-request-prod]
+
+deploy:plan:
+  stage: deploy:plan
+  script:
+    - pulumi up --yes -s $ENV -C $PULUMI_PLAN_DIR
+  rules:
+    - !reference [.rules-deploy-dev]
+    - !reference [.rules-deploy-prod]
+
+review:plan:
+  stage: review:plan
+  script:
+    - pulumi preview -s $ENV -C $PULUMI_PLAN_DIR --diff --expect-no-changes --refresh
+  rules:
+    - !reference [.rules-deploy-dev]
+    - !reference [.rules-deploy-prod]
+    - !reference [.rules-schedule-dev]
+    - !reference [.rules-schedule-prod]
+
+deploy:function:
+  stage: deploy:function
+  script:
+    - pulumi up --yes -s $ENV -C $PULUMI_FUNCTION_DIR
+  rules:
+    - !reference [.rules-deploy-dev]
+    - !reference [.rules-deploy-prod]
+
+review:function:
+  stage: review:function
+  script:
+    - pulumi preview -s $ENV -C $PULUMI_FUNCTION_DIR --diff --expect-no-changes --refresh
+  rules:
+    - !reference [.rules-deploy-dev]
+    - !reference [.rules-deploy-prod]
+    - !reference [.rules-schedule-dev]
+    - !reference [.rules-schedule-prod]

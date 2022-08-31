@@ -1,0 +1,17 @@
+# dev
+.rules-schedule-dev:
+  if: $CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    ENV: dev-0
+
+# staging
+.rules-schedule-staging:
+  if: $CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    ENV: stg-0
+
+# prod
+.rules-schedule-prod:
+  if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    ENV: prod-0

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -xe
+
+export $(grep -v '^#' configs/pulumi/${ENV}.env | xargs)
+
+pulumi stack init $ENV -C $PULUMI_FUNCTION_DIR || true
+pulumi stack init $ENV -C $PULUMI_PLAN_DIR || true
+pulumi stack export -s $ENV -C $PULUMI_FUNCTION_DIR --file state.json
+: ${PREV_VERSION=$(jq -r '.deployment.resources[].outputs | select(.funcVersion).funcVersion' $PULUMI_FUNCTION_DIR/state.json)}
+: ${PREV_CI_COMMIT_SHORT_SHA=$(jq -r '.deployment.resources[].outputs | select(.commit).commit' $PULUMI_FUNCTION_DIR/state.json)}
+
+echo "VERSION=${VERSION:-1.0.0}" >> configs/pulumi/$ENV.env
+echo "PREV_VERSION=${PREV_VERSION:-1.0.0}" >> configs/pulumi/$ENV.env
+echo "PREV_CI_COMMIT_SHORT_SHA=${PREV_CI_COMMIT_SHORT_SHA:-none}" >> configs/pulumi/$ENV.env

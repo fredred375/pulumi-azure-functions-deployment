@@ -1,0 +1,35 @@
+# dev
+.rules-merge-request-dev:
+  if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $UPSTREAM_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"
+  variables:
+    ENV: dev-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# staging
+.rules-merge-request-staging:
+  if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging" || $UPSTREAM_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging"
+  variables:
+    ENV: stg-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# prod
+.rules-merge-request-prod:
+  if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" || $UPSTREAM_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  variables:
+    ENV: prod-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock

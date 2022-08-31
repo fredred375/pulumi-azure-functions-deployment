@@ -1,0 +1,35 @@
+# dev
+.rules-deploy-dev:
+  if: $CI_COMMIT_BRANCH == "develop" && ($UPSTREAM_PIPELINE_SOURCE == "push" || $UPSTREAM_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'web')
+  variables:
+    ENV: dev-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# staging
+.rules-deploy-staging:
+  if: $CI_COMMIT_BRANCH == "staging" && ($UPSTREAM_PIPELINE_SOURCE == "push" || $UPSTREAM_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'web')
+  variables:
+    ENV: stg-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
+
+# prod
+.rules-deploy-prod:
+  if: $CI_COMMIT_BRANCH == "main" && ($UPSTREAM_PIPELINE_SOURCE == "push" || $UPSTREAM_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'web')
+  variables:
+    ENV: prod-0
+  changes:
+    - build/ci/**/*
+    - configs/pulumi/examples/$ENV.env
+    - src/**/*
+    - deployments/pulumi/index.ts
+    - yarn.lock
